@@ -93,10 +93,9 @@ body::before{
   display:flex;justify-content:space-between;align-items:flex-end;
   border-top:1px solid rgba(255,255,255,.07);
 }
-.stat .val{font-size:18px;font-weight:800;color:#f0e0c0;}
-.stat .lbl{font-size:10px;color:#8a7050;margin-top:1px;letter-spacing:.3px;}
+.stat .val{font-size:22px;font-weight:800;color:#ffffff;}
+.stat .lbl{font-size:10px;color:#aaa;margin-top:1px;letter-spacing:.3px;}
 .statRow{display:flex;gap:16px;}
-.lastUpd{font-size:10px;color:#5a4535;margin-top:5px;}
 .openBtn{
   padding:10px 22px;border:none;border-radius:24px;
   font-size:13px;font-weight:700;cursor:pointer;color:#fff;
@@ -311,15 +310,12 @@ function buildCard(binder, index){
   const footer = document.createElement('div');
   footer.className = 'cardFooter';
   if(!data){
-    footer.innerHTML = `<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Open binder once to sync stats</div></div>`;
+    footer.innerHTML = `<div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div>`;
   } else {
     footer.innerHTML = `
-      <div>
-        <div class="statRow">
-          <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
-          <div class="stat"><div class="val">${fmtVal(stats.value)}</div><div class="lbl">VALUE</div></div>
-        </div>
-        <div class="lastUpd">Updated ${fmtDate(stats.lastTs)}</div>
+      <div class="statRow">
+        <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
+        <div class="stat"><div class="val">${fmtVal(stats.value)}</div><div class="lbl">VALUE</div></div>
       </div>
     `;
   }
