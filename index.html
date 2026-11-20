@@ -302,21 +302,18 @@ function buildCard(binder, index){
   spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
   card.appendChild(spine);
 
-  /* Cover art always visible, loaded or not */
-  card.appendChild(buildCoverBody(binder, data));
+  /* Cover art — clickable to open the binder */
+  const coverBody = buildCoverBody(binder, data);
+  coverBody.style.cursor = 'pointer';
+  coverBody.addEventListener('click', e => { e.stopPropagation(); window.location.href = binder.url; });
+  card.appendChild(coverBody);
 
-  const footer=document.createElement('div');
-  footer.className='cardFooter';
-  const btn=document.createElement('button');
-  btn.className='openBtn';
-  btn.style.background=binder.accent;
-  btn.textContent='Open →';
-  btn.addEventListener('click',e=>{e.stopPropagation();window.location.href=binder.url;});
-
+  const footer = document.createElement('div');
+  footer.className = 'cardFooter';
   if(!data){
-    footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Open binder once to sync stats</div></div>`;
+    footer.innerHTML = `<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Open binder once to sync stats</div></div>`;
   } else {
-    footer.innerHTML=`
+    footer.innerHTML = `
       <div>
         <div class="statRow">
           <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
@@ -326,7 +323,6 @@ function buildCard(binder, index){
       </div>
     `;
   }
-  footer.appendChild(btn);
   card.appendChild(footer);
 
   wrap.appendChild(card);
