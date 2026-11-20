@@ -9,177 +9,136 @@
 html,body{height:100%;overflow:hidden}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:#1a1208;
-  color:#eee;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
-  overflow:hidden;
-  position:relative;
+  background:#1a1208;color:#eee;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;overflow:hidden;
 }
 body::before{
-  content:'';
-  position:fixed;inset:0;
+  content:'';position:fixed;inset:0;
   background:radial-gradient(ellipse at 50% 0%,rgba(80,50,10,0.3) 0%,transparent 68%);
-  pointer-events:none;z-index:0;
+  pointer-events:none;
 }
 
 /* ── Header ── */
 .hubHeader{
-  position:relative;z-index:10;
-  flex-shrink:0;
-  padding:16px 20px 10px;
-  text-align:center;
-  width:100%;
+  flex-shrink:0;position:relative;z-index:10;
+  padding:16px 20px 10px;text-align:center;width:100%;
 }
-.hubHeader h1{font-size:19px;color:#f0d070;font-weight:800;letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
-.hubHeader p{font-size:11px;color:#8a7050;margin-top:2px;letter-spacing:.2px;}
+.hubHeader h1{font-size:19px;color:#f0d070;font-weight:800;letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,.6);}
+.hubHeader p{font-size:11px;color:#8a7050;margin-top:2px;}
 
-/* ── Scroll track ── */
-.carouselWrap{
-  flex:1;
-  width:100%;
-  overflow:hidden;
-  position:relative;z-index:1;
-  display:flex;
-  align-items:center;
-}
+/* ── Scroll container ── */
+.carouselWrap{flex:1;min-height:0;width:100%;overflow:hidden;position:relative;z-index:1;}
+
 .carouselTrack{
   display:flex;
   align-items:center;
+  height:100%;
   overflow-x:scroll;
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior-x:contain;
   scrollbar-width:none;
   gap:20px;
-  /* padding centers the first/last card with equal peek on both sides */
-  padding:16px calc(50vw - 140px - 22px);
-  width:100%;
-  height:100%;
+  /* padding centers the first/last card AND creates the peek of adjacent cards */
+  padding-inline: max(10px, calc(50vw - 140px));
+  padding-block:16px;
 }
 .carouselTrack::-webkit-scrollbar{display:none}
 
-/* ── Binder card ── */
-.binderCard{
+/* Wrapper owns snap — no transforms here, ever */
+.cardWrapper{
   flex-shrink:0;
   width:280px;
-  min-height:420px;
-  max-height:460px;
-  border-radius:16px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
   scroll-snap-align:center;
-  /* transitions handle smooth tilts during JS-driven scroll feedback */
-  will-change:transform,filter;
-  box-shadow:0 20px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(255,255,255,0.07);
-  cursor:pointer;
-  user-select:none;
 }
 
-/* Spine (top bar) */
+/* Card owns visuals — JS applies rotateY/scale/brightness */
+.binderCard{
+  width:280px;
+  border-radius:16px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);
+  cursor:pointer;user-select:none;
+  /* smooth out the per-frame transform updates */
+  transition:transform 60ms linear, filter 60ms linear;
+}
+
+/* Spine */
 .cardSpine{
-  flex-shrink:0;
-  height:54px;
+  flex-shrink:0;height:54px;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 18px;
-  position:relative;
+  padding:0 18px;position:relative;
 }
 .cardSpine::after{
-  content:'';
-  position:absolute;bottom:0;left:14px;right:14px;
-  height:1px;background:rgba(255,255,255,0.09);
+  content:'';position:absolute;bottom:0;left:14px;right:14px;
+  height:1px;background:rgba(255,255,255,.09);
 }
-.spineName{font-size:17px;font-weight:800;color:#f0e0c0;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
+.spineName{font-size:17px;font-weight:800;color:#f0e0c0;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,.5);}
 .spineIcon{font-size:24px;}
 
 /* Thumbnail grid */
 .thumbGrid{
-  flex:1;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  padding:12px;
-  background:rgba(0,0,0,0.25);
+  flex:1;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:5px;padding:12px;background:rgba(0,0,0,.25);
 }
-.thumb{
-  aspect-ratio:.714;
-  border-radius:5px;
-  overflow:hidden;
-  background:#1e1508;
-}
+.thumb{aspect-ratio:.714;border-radius:5px;overflow:hidden;background:#1e1508;}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-.thumb.empty{
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;color:rgba(255,255,255,0.08);
-}
+.thumb.empty{display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,255,255,.08);}
 
 /* Footer */
 .cardFooter{
-  flex-shrink:0;
-  padding:12px 18px 16px;
+  flex-shrink:0;padding:12px 18px 16px;
   display:flex;justify-content:space-between;align-items:flex-end;
-  border-top:1px solid rgba(255,255,255,0.07);
+  border-top:1px solid rgba(255,255,255,.07);
 }
 .stat .val{font-size:18px;font-weight:800;color:#f0e0c0;}
 .stat .lbl{font-size:10px;color:#8a7050;margin-top:1px;letter-spacing:.3px;}
 .statRow{display:flex;gap:16px;}
 .lastUpd{font-size:10px;color:#5a4535;margin-top:5px;}
 .openBtn{
-  padding:10px 22px;
-  border:none;border-radius:24px;
-  font-size:13px;font-weight:700;letter-spacing:.3px;
-  cursor:pointer;color:#fff;
-  box-shadow:0 4px 16px rgba(0,0,0,0.4);
-  transition:transform .15s,filter .15s;
-  flex-shrink:0;
+  padding:10px 22px;border:none;border-radius:24px;
+  font-size:13px;font-weight:700;cursor:pointer;color:#fff;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+  transition:transform .15s,filter .15s;flex-shrink:0;
 }
-.openBtn:active{transform:scale(0.95);}
+.openBtn:active{transform:scale(.95);}
 
-/* Not-loaded state */
+/* Not-loaded */
 .notLoaded{
-  flex:1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:12px;padding:24px;text-align:center;
 }
 .notLoaded .nlIcon{font-size:44px;opacity:.3;}
 .notLoaded p{font-size:13px;color:#7a6040;line-height:1.6;max-width:200px;}
 .notLoaded a{
   font-size:13px;font-weight:700;text-decoration:none;
-  padding:8px 20px;border-radius:20px;border:1px solid;
-  transition:filter .15s;
+  padding:8px 20px;border-radius:20px;border:1px solid;transition:filter .15s;
 }
 
 /* ── Dots ── */
 .dots{
-  flex-shrink:0;
-  padding:14px 0 20px;
-  display:flex;gap:9px;z-index:10;
-  align-items:center;justify-content:center;
-  position:relative;
+  flex-shrink:0;padding:14px 0 20px;
+  display:flex;gap:9px;align-items:center;justify-content:center;
+  position:relative;z-index:10;
 }
 .dot{
   width:7px;height:7px;border-radius:50%;
-  background:rgba(255,255,255,0.18);
-  cursor:pointer;
-  transition:background .2s,transform .2s;
+  background:rgba(255,255,255,.18);
+  cursor:pointer;transition:background .2s,transform .2s;
 }
 .dot.active{background:#f0d070;transform:scale(1.4);}
 
-/* ── Nav hint arrows (subtle, edges of screen) ── */
+/* Edge hint arrows */
 .navHint{
-  position:fixed;top:50%;
-  transform:translateY(-50%);
-  width:36px;height:72px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;color:rgba(240,208,112,0.35);
-  z-index:20;pointer-events:none;
+  position:fixed;top:50%;transform:translateY(-50%);
+  font-size:22px;color:rgba(240,208,112,.4);
+  pointer-events:none;z-index:20;
   transition:opacity .3s;
 }
-#hintLeft{left:0;}
-#hintRight{right:0;}
+#hintLeft{left:4px;}
+#hintRight{right:4px;}
 </style>
 </head>
 <body>
@@ -189,17 +148,17 @@ body::before{
   <p>Swipe to browse your collection</p>
 </div>
 
-<div id="hintLeft"  class="navHint">‹</div>
-<div id="hintRight" class="navHint">›</div>
+<span id="hintLeft"  class="navHint">‹</span>
+<span id="hintRight" class="navHint">›</span>
 
 <div class="carouselWrap">
-  <div class="carouselTrack" id="carouselTrack"></div>
+  <div class="carouselTrack" id="track"></div>
 </div>
 
 <div class="dots" id="dots"></div>
 
 <script>
-/* ── Binder registry ─────────────────────────────────────── */
+/* ── Registry ────────────────────────────────────────────── */
 const BINDERS = [
   {
     key:    'melanies_binder_local_v1',
@@ -221,36 +180,38 @@ const BINDERS = [
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function loadData(key){
-  try{ const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; }catch(e){ return null; }
+  try{ const r=localStorage.getItem(key); return r?JSON.parse(r):null; }catch(e){ return null; }
 }
 function getStats(data){
-  const cards = [];
-  let lastTs = null;
-  (data?.pages||[]).forEach(page =>
-    (page||[]).forEach(slot => {
-      if(!slot) return;
-      cards.push(slot);
-      if(slot.addedAt && (!lastTs || slot.addedAt > lastTs)) lastTs = slot.addedAt;
-    })
-  );
-  return {
-    count:   cards.length,
-    value:   cards.reduce((s,c) => s + (Number(c.price)||0), 0),
-    images:  cards.filter(c=>c.image).slice(0,6).map(c=>c.image),
+  const cards=[];let lastTs=null;
+  (data?.pages||[]).forEach(p=>(p||[]).forEach(s=>{
+    if(!s)return;
+    cards.push(s);
+    if(s.addedAt&&(!lastTs||s.addedAt>lastTs))lastTs=s.addedAt;
+  }));
+  return{
+    count:  cards.length,
+    value:  cards.reduce((a,c)=>a+(Number(c.price)||0),0),
+    images: cards.filter(c=>c.image).slice(0,6).map(c=>c.image),
     lastTs,
   };
 }
 function fmtDate(ts){
-  if(!ts) return 'No data yet';
+  if(!ts)return'No data yet';
   return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
-function fmtVal(v){ return v > 0 ? '$'+v.toFixed(2) : '—'; }
+function fmtVal(v){return v>0?'$'+v.toFixed(2):'—';}
 
-/* ── Build a card element ────────────────────────────────── */
+/* ── Build card ──────────────────────────────────────────── */
 function buildCard(binder, index){
   const data  = loadData(binder.key);
   const stats = getStats(data);
 
+  /* Wrapper — owns the snap point, never transformed */
+  const wrap = document.createElement('div');
+  wrap.className = 'cardWrapper';
+
+  /* Card — owns the visuals, receives JS transforms */
   const card = document.createElement('div');
   card.className = 'binderCard';
   card.style.background = binder.bg;
@@ -259,52 +220,49 @@ function buildCard(binder, index){
   /* Spine */
   const spine = document.createElement('div');
   spine.className = 'cardSpine';
-  spine.style.background = binder.accent + '28';
+  spine.style.background = binder.accent+'28';
   spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
   card.appendChild(spine);
 
   if(!data){
-    const nl = document.createElement('div');
-    nl.className = 'notLoaded';
-    nl.innerHTML = `
+    const nl=document.createElement('div');
+    nl.className='notLoaded';
+    nl.innerHTML=`
       <div class="nlIcon">📂</div>
       <p>Open this binder once on this device so the Hub can read your collection.</p>
       <a href="${binder.url}" style="color:${binder.accent};border-color:${binder.accent}44;">Open to load →</a>
     `;
     card.appendChild(nl);
-    const footer = document.createElement('div');
-    footer.className = 'cardFooter';
-    footer.innerHTML = `<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
+    const footer=document.createElement('div');
+    footer.className='cardFooter';
+    footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
     card.appendChild(footer);
   } else {
-    const grid = document.createElement('div');
-    grid.className = 'thumbGrid';
+    const grid=document.createElement('div');
+    grid.className='thumbGrid';
     for(let i=0;i<6;i++){
-      const cell = document.createElement('div');
+      const cell=document.createElement('div');
       if(stats.images[i]){
-        cell.className = 'thumb';
-        const img = document.createElement('img');
-        img.src = stats.images[i];
-        img.loading = 'lazy';
-        img.alt = '';
-        img.onerror = () => { cell.className='thumb empty'; cell.innerHTML='?'; };
+        cell.className='thumb';
+        const img=document.createElement('img');
+        img.src=stats.images[i]; img.loading='lazy'; img.alt='';
+        img.onerror=()=>{cell.className='thumb empty';cell.innerHTML='?';};
         cell.appendChild(img);
-      } else {
-        cell.className = 'thumb empty';
-        cell.textContent = '?';
+      }else{
+        cell.className='thumb empty'; cell.textContent='?';
       }
       grid.appendChild(cell);
     }
     card.appendChild(grid);
 
-    const footer = document.createElement('div');
-    footer.className = 'cardFooter';
-    const btn = document.createElement('button');
-    btn.className = 'openBtn';
-    btn.style.background = binder.accent;
-    btn.textContent = 'Open →';
-    btn.addEventListener('click', e => { e.stopPropagation(); window.location.href = binder.url; });
-    footer.innerHTML = `
+    const footer=document.createElement('div');
+    footer.className='cardFooter';
+    const btn=document.createElement('button');
+    btn.className='openBtn';
+    btn.style.background=binder.accent;
+    btn.textContent='Open →';
+    btn.addEventListener('click',e=>{e.stopPropagation();window.location.href=binder.url;});
+    footer.innerHTML=`
       <div>
         <div class="statRow">
           <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
@@ -316,80 +274,82 @@ function buildCard(binder, index){
     footer.appendChild(btn);
     card.appendChild(footer);
   }
-  return card;
+
+  wrap.appendChild(card);
+  return { wrap, card };
 }
 
-/* ── Init cards & dots ───────────────────────────────────── */
-const track  = document.getElementById('carouselTrack');
+/* ── Init ────────────────────────────────────────────────── */
+const track  = document.getElementById('track');
 const dotsEl = document.getElementById('dots');
-const cards  = [];
-let current  = 0;
+const wrappers = [], cards = [];
+let current = 0;
 
 BINDERS.forEach((binder, i) => {
-  const card = buildCard(binder, i);
+  const { wrap, card } = buildCard(binder, i);
+  wrappers.push(wrap);
   cards.push(card);
-  track.appendChild(card);
+  track.appendChild(wrap);
 
   const dot = document.createElement('div');
-  dot.className = 'dot' + (i===0?' active':'');
+  dot.className = 'dot'+(i===0?' active':'');
   dot.addEventListener('click', () => scrollToCard(i));
   dotsEl.appendChild(dot);
 });
 
-/* ── Scroll to a card (smooth, iOS-native) ───────────────── */
+/* ── Scroll to a card ────────────────────────────────────── */
 function scrollToCard(i){
-  cards[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+  wrappers[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
 }
 
-/* ── 3D tilt + dot sync on scroll ───────────────────────── */
-let rafId = null;
+/* ── Tilt + dot sync ─────────────────────────────────────── */
+let raf = null;
 function onScroll(){
-  if(rafId) cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(applyTilts);
+  if(raf) cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(applyTilts);
 }
 
 function applyTilts(){
-  const trackRect = track.getBoundingClientRect();
-  const center    = trackRect.left + trackRect.width / 2;
-  let   closestI  = 0;
-  let   closestD  = Infinity;
+  const tr     = track.getBoundingClientRect();
+  const center = tr.left + tr.width / 2;
+  let   ci=0, cd=Infinity;
 
-  cards.forEach((card, i) => {
-    const r    = card.getBoundingClientRect();
-    const cCtr = r.left + r.width / 2;
-    const off  = (cCtr - center) / trackRect.width;  // -1 … +1
+  wrappers.forEach((wrap, i) => {
+    /* read the WRAPPER rect — untransformed, accurate snap position */
+    const r   = wrap.getBoundingClientRect();
+    const ctr = r.left + r.width / 2;
+    const off = (ctr - center) / tr.width;   // –1 … +1
 
-    const angle      = off * 44;
-    const scale      = Math.max(0.80, 1 - Math.abs(off) * 0.22);
-    const brightness = Math.max(0.45, 1 - Math.abs(off) * 0.52);
+    const angle = off * 42;
+    const scale = Math.max(0.80, 1 - Math.abs(off) * 0.22);
+    const brite = Math.max(0.45, 1 - Math.abs(off) * 0.52);
 
-    card.style.transform = `perspective(900px) rotateY(${angle}deg) scale(${scale})`;
-    card.style.filter    = `brightness(${brightness})`;
+    /* apply transform to the INNER CARD, never the wrapper */
+    cards[i].style.transform = `perspective(900px) rotateY(${angle}deg) scale(${scale})`;
+    cards[i].style.filter    = `brightness(${brite})`;
 
-    const dist = Math.abs(cCtr - center);
-    if(dist < closestD){ closestD = dist; closestI = i; }
+    const dist = Math.abs(ctr - center);
+    if(dist < cd){ cd=dist; ci=i; }
   });
 
-  /* update dots & hint arrows */
-  if(closestI !== current){
-    current = closestI;
-    dotsEl.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===current));
+  if(ci !== current){
+    current = ci;
+    dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
   }
-  document.getElementById('hintLeft').style.opacity  = current > 0 ? '1' : '0';
-  document.getElementById('hintRight').style.opacity = current < cards.length-1 ? '1' : '0';
+  document.getElementById('hintLeft').style.opacity  = current>0 ? '1':'0';
+  document.getElementById('hintRight').style.opacity = current<cards.length-1 ? '1':'0';
 }
 
 track.addEventListener('scroll', onScroll, { passive:true });
 
-/* ── Keyboard fallback ───────────────────────────────────── */
-document.addEventListener('keydown', e => {
+/* ── Keyboard ────────────────────────────────────────────── */
+document.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft'  && current>0)              scrollToCard(current-1);
   if(e.key==='ArrowRight' && current<cards.length-1) scrollToCard(current+1);
 });
 
 /* ── Initial render ──────────────────────────────────────── */
 applyTilts();
-// After layout settle, re-run so offsetLeft values are accurate
 requestAnimationFrame(applyTilts);
 </script>
 </body>
