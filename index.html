@@ -302,29 +302,20 @@ function buildCard(binder, index){
   spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
   card.appendChild(spine);
 
-  if(!data){
-    const nl=document.createElement('div');
-    nl.className='notLoaded';
-    nl.innerHTML=`
-      <div class="nlIcon">📂</div>
-      <p>Open this binder once on this device so the Hub can read your collection.</p>
-      <a href="${binder.url}" style="color:${binder.accent};border-color:${binder.accent}44;">Open to load →</a>
-    `;
-    card.appendChild(nl);
-    const footer=document.createElement('div');
-    footer.className='cardFooter';
-    footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
-    card.appendChild(footer);
-  } else {
-    card.appendChild(buildCoverBody(binder, data));
+  /* Cover art always visible, loaded or not */
+  card.appendChild(buildCoverBody(binder, data));
 
-    const footer=document.createElement('div');
-    footer.className='cardFooter';
-    const btn=document.createElement('button');
-    btn.className='openBtn';
-    btn.style.background=binder.accent;
-    btn.textContent='Open →';
-    btn.addEventListener('click',e=>{e.stopPropagation();window.location.href=binder.url;});
+  const footer=document.createElement('div');
+  footer.className='cardFooter';
+  const btn=document.createElement('button');
+  btn.className='openBtn';
+  btn.style.background=binder.accent;
+  btn.textContent='Open →';
+  btn.addEventListener('click',e=>{e.stopPropagation();window.location.href=binder.url;});
+
+  if(!data){
+    footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Open binder once to sync stats</div></div>`;
+  } else {
     footer.innerHTML=`
       <div>
         <div class="statRow">
@@ -334,9 +325,9 @@ function buildCard(binder, index){
         <div class="lastUpd">Updated ${fmtDate(stats.lastTs)}</div>
       </div>
     `;
-    footer.appendChild(btn);
-    card.appendChild(footer);
   }
+  footer.appendChild(btn);
+  card.appendChild(footer);
 
   wrap.appendChild(card);
   return { wrap, card };
