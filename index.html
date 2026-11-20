@@ -130,6 +130,17 @@ body::before{
 }
 .dot.active{background:#f0d070;transform:scale(1.4);}
 
+/* Cover art */
+.coverArt{
+  flex:1;overflow:hidden;
+  min-height:160px;max-height:220px;
+  position:relative;
+}
+.coverArt img{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+
 /* Edge hint arrows */
 .navHint{
   position:fixed;top:50%;transform:translateY(-50%);
@@ -202,6 +213,26 @@ function fmtDate(ts){
 }
 function fmtVal(v){return v>0?'$'+v.toFixed(2):'—';}
 
+/* ── Thumb grid helper ───────────────────────────────────── */
+function buildThumbGrid(stats){
+  const grid=document.createElement('div');
+  grid.className='thumbGrid';
+  for(let i=0;i<6;i++){
+    const cell=document.createElement('div');
+    if(stats.images[i]){
+      cell.className='thumb';
+      const img=document.createElement('img');
+      img.src=stats.images[i]; img.loading='lazy'; img.alt='';
+      img.onerror=()=>{cell.className='thumb empty';cell.innerHTML='?';};
+      cell.appendChild(img);
+    }else{
+      cell.className='thumb empty'; cell.textContent='?';
+    }
+    grid.appendChild(cell);
+  }
+  return grid;
+}
+
 /* ── Build card ──────────────────────────────────────────── */
 function buildCard(binder, index){
   const data  = loadData(binder.key);
@@ -238,22 +269,21 @@ function buildCard(binder, index){
     footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
     card.appendChild(footer);
   } else {
-    const grid=document.createElement('div');
-    grid.className='thumbGrid';
-    for(let i=0;i<6;i++){
-      const cell=document.createElement('div');
-      if(stats.images[i]){
-        cell.className='thumb';
-        const img=document.createElement('img');
-        img.src=stats.images[i]; img.loading='lazy'; img.alt='';
-        img.onerror=()=>{cell.className='thumb empty';cell.innerHTML='?';};
-        cell.appendChild(img);
-      }else{
-        cell.className='thumb empty'; cell.textContent='?';
-      }
-      grid.appendChild(cell);
+    if(data.coverImage){
+      const coverWrap=document.createElement('div');
+      coverWrap.className='coverArt';
+      const img=document.createElement('img');
+      img.src=data.coverImage; img.alt='Binder cover'; img.loading='lazy';
+      img.onerror=()=>{
+        coverWrap.remove();
+        const grid=buildThumbGrid(stats);
+        card.insertBefore(grid, card.querySelector('.cardFooter'));
+      };
+      coverWrap.appendChild(img);
+      card.appendChild(coverWrap);
+    } else {
+      card.appendChild(buildThumbGrid(stats));
     }
-    card.appendChild(grid);
 
     const footer=document.createElement('div');
     footer.className='cardFooter';
