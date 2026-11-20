@@ -130,15 +130,28 @@ body::before{
 }
 .dot.active{background:#f0d070;transform:scale(1.4);}
 
-/* Cover art */
-.coverArt{
-  flex:1;overflow:hidden;
-  min-height:160px;max-height:220px;
-  position:relative;
+/* Mini binder cover */
+.miniCover{
+  flex:1; position:relative; overflow:hidden;
+  min-height:155px; max-height:210px;
+  display:flex; align-items:center; justify-content:center;
 }
-.coverArt img{
-  width:100%;height:100%;
-  object-fit:cover;display:block;
+.miniCoverTexture{
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(0,0,0,0.18) 6px 7px);
+}
+.miniCoverVignette{
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+}
+.miniCoverContent{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; padding:12px;
+}
+.miniFiremark{ width:52px; height:52px; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+.miniCoverTitle{
+  color:#fff; font-family:Georgia,serif; font-weight:900;
+  font-size:14px; text-align:center; letter-spacing:.5px;
 }
 
 /* Edge hint arrows */
@@ -178,6 +191,11 @@ const BINDERS = [
     accent: '#c0392b',
     bg:     'linear-gradient(160deg,#2e0d0d 0%,#1a0808 100%)',
     icon:   '🎀',
+    coverGrad:    'radial-gradient(circle at 30% 18%, #f5e6ff 0%, #c87dff 14%, #8830e8 34%, #4a0fa8 56%, #250570 76%, #0a0030 100%)',
+    coverVignette:'radial-gradient(ellipse 70% 45% at 75% 85%,rgba(10,5,30,.65) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 15% 90%,rgba(10,5,30,.6) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at 85% 10%,rgba(200,150,255,.3) 0%,transparent 50%)',
+    titleShadow:  '0 2px 0 #2a006b,0 4px 10px rgba(0,0,0,.7),0 0 24px rgba(180,100,255,.75)',
+    titleStroke:  '#1a0050',
+    iconSvg:      '<path d="M58 14 C36 18 20 36 20 55 C20 74 38 90 60 88 C42 83 30 70 30 55 C30 40 42 27 58 22 Z" fill="#ddb8ff" stroke="#7700bb" stroke-width="2"/><circle cx="75" cy="22" r="4" fill="#ffe066"/><circle cx="68" cy="11" r="2.5" fill="#ffccff"/><circle cx="83" cy="34" r="2" fill="#ffffff"/>',
   },
   {
     key:    'louis_binder_local_v1',
@@ -186,6 +204,11 @@ const BINDERS = [
     accent: '#1565c0',
     bg:     'linear-gradient(160deg,#0a1828 0%,#06101e 100%)',
     icon:   '🎮',
+    coverGrad:    'radial-gradient(circle at 30% 18%, #fff6b0 0%, #ffd23f 14%, #ff9a1f 34%, #ff5b1f 56%, #e8290c 76%, #a8120a 100%)',
+    coverVignette:'radial-gradient(ellipse 70% 45% at 75% 85%,rgba(40,10,5,.55) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 15% 90%,rgba(40,10,5,.5) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at 85% 10%,rgba(255,255,255,.25) 0%,transparent 50%)',
+    titleShadow:  '0 2px 0 #7a1505,0 4px 10px rgba(0,0,0,.7),0 0 24px rgba(255,150,0,.6)',
+    titleStroke:  '#5c1004',
+    iconSvg:      '<path d="M50 8 C40 22 30 30 30 46 C30 60 38 70 50 70 C62 70 70 60 70 46 C70 38 66 32 62 28 C63 38 58 42 53 40 C58 34 55 24 50 8 Z" fill="#ffe066" stroke="#7a1505" stroke-width="2"/><path d="M50 30 C45 38 42 44 42 52 C42 60 46 65 50 65 C54 65 58 60 58 52 C58 47 56 44 54 41 C54 47 51 49 49 47 C52 43 51 37 50 30 Z" fill="#ff7a1a" stroke="#7a1505" stroke-width="1.5"/>',
   },
 ];
 
@@ -213,24 +236,48 @@ function fmtDate(ts){
 }
 function fmtVal(v){return v>0?'$'+v.toFixed(2):'—';}
 
-/* ── Thumb grid helper ───────────────────────────────────── */
-function buildThumbGrid(stats){
-  const grid=document.createElement('div');
-  grid.className='thumbGrid';
-  for(let i=0;i<6;i++){
-    const cell=document.createElement('div');
-    if(stats.images[i]){
-      cell.className='thumb';
-      const img=document.createElement('img');
-      img.src=stats.images[i]; img.loading='lazy'; img.alt='';
-      img.onerror=()=>{cell.className='thumb empty';cell.innerHTML='?';};
-      cell.appendChild(img);
-    }else{
-      cell.className='thumb empty'; cell.textContent='?';
-    }
-    grid.appendChild(cell);
+/* ── Mini binder cover ───────────────────────────────────── */
+function buildCoverBody(binder, data){
+  const wrap=document.createElement('div');
+  wrap.className='miniCover';
+
+  if(data && data.coverImage){
+    wrap.style.backgroundImage=`url(${data.coverImage})`;
+    wrap.style.backgroundSize='cover';
+    wrap.style.backgroundPosition='center';
+  } else {
+    wrap.style.background=binder.coverGrad||binder.bg;
   }
-  return grid;
+
+  const tex=document.createElement('div');
+  tex.className='miniCoverTexture';
+  wrap.appendChild(tex);
+
+  const vig=document.createElement('div');
+  vig.className='miniCoverVignette';
+  if(binder.coverVignette) vig.style.background=binder.coverVignette;
+  wrap.appendChild(vig);
+
+  const content=document.createElement('div');
+  content.className='miniCoverContent';
+
+  if(binder.iconSvg){
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 100 100');
+    svg.setAttribute('class','miniFiremark');
+    svg.innerHTML=binder.iconSvg;
+    content.appendChild(svg);
+  }
+
+  const title=document.createElement('div');
+  title.className='miniCoverTitle';
+  title.textContent=binder.name;
+  if(binder.titleShadow) title.style.textShadow=binder.titleShadow;
+  if(binder.titleStroke) title.style.webkitTextStroke=`1px ${binder.titleStroke}`;
+  content.appendChild(title);
+
+  wrap.appendChild(content);
+  return wrap;
 }
 
 /* ── Build card ──────────────────────────────────────────── */
@@ -269,21 +316,7 @@ function buildCard(binder, index){
     footer.innerHTML=`<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
     card.appendChild(footer);
   } else {
-    if(data.coverImage){
-      const coverWrap=document.createElement('div');
-      coverWrap.className='coverArt';
-      const img=document.createElement('img');
-      img.src=data.coverImage; img.alt='Binder cover'; img.loading='lazy';
-      img.onerror=()=>{
-        coverWrap.remove();
-        const grid=buildThumbGrid(stats);
-        card.insertBefore(grid, card.querySelector('.cardFooter'));
-      };
-      coverWrap.appendChild(img);
-      card.appendChild(coverWrap);
-    } else {
-      card.appendChild(buildThumbGrid(stats));
-    }
+    card.appendChild(buildCoverBody(binder, data));
 
     const footer=document.createElement('div');
     footer.className='cardFooter';
