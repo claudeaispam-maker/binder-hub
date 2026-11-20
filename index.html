@@ -129,10 +129,9 @@ body::before{
 }
 .dot.active{background:#f0d070;transform:scale(1.4);}
 
-/* Mini binder cover */
+/* Mini binder cover — full card */
 .miniCover{
   flex:1; position:relative; overflow:hidden;
-  min-height:155px; max-height:210px;
   display:flex; align-items:center; justify-content:center;
 }
 .miniCoverTexture{
@@ -145,13 +144,22 @@ body::before{
 .miniCoverContent{
   position:relative; z-index:2;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:8px; padding:12px;
+  gap:10px; padding:16px;
 }
-.miniFiremark{ width:52px; height:52px; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+.miniFiremark{ width:62px; height:62px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.6)); }
+/* Name label pinned to bottom of cover */
+.miniCoverLabel{
+  position:absolute; bottom:0; left:0; right:0; z-index:3;
+  padding:28px 14px 14px;
+  background:linear-gradient(to top, rgba(0,0,0,.72) 0%, transparent 100%);
+  display:flex; align-items:center; justify-content:space-between;
+}
 .miniCoverTitle{
   color:#fff; font-family:Georgia,serif; font-weight:900;
-  font-size:14px; text-align:center; letter-spacing:.5px;
+  font-size:16px; letter-spacing:.4px;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
 }
+.miniCoverIcon{ font-size:22px; line-height:1; }
 
 /* Edge hint arrows */
 .navHint{
@@ -257,9 +265,9 @@ function buildCoverBody(binder, data){
   if(binder.coverVignette) vig.style.background=binder.coverVignette;
   wrap.appendChild(vig);
 
+  /* Centered icon */
   const content=document.createElement('div');
   content.className='miniCoverContent';
-
   if(binder.iconSvg){
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('viewBox','0 0 100 100');
@@ -267,15 +275,21 @@ function buildCoverBody(binder, data){
     svg.innerHTML=binder.iconSvg;
     content.appendChild(svg);
   }
-
-  const title=document.createElement('div');
-  title.className='miniCoverTitle';
-  title.textContent=binder.name;
-  if(binder.titleShadow) title.style.textShadow=binder.titleShadow;
-  if(binder.titleStroke) title.style.webkitTextStroke=`1px ${binder.titleStroke}`;
-  content.appendChild(title);
-
   wrap.appendChild(content);
+
+  /* Name + icon label pinned to bottom */
+  const label=document.createElement('div');
+  label.className='miniCoverLabel';
+  const titleEl=document.createElement('span');
+  titleEl.className='miniCoverTitle';
+  titleEl.textContent=binder.name;
+  const iconEl=document.createElement('span');
+  iconEl.className='miniCoverIcon';
+  iconEl.textContent=binder.icon;
+  label.appendChild(titleEl);
+  label.appendChild(iconEl);
+  wrap.appendChild(label);
+
   return wrap;
 }
 
@@ -294,32 +308,11 @@ function buildCard(binder, index){
   card.style.background = binder.bg;
   card.dataset.index = index;
 
-  /* Spine */
-  const spine = document.createElement('div');
-  spine.className = 'cardSpine';
-  spine.style.background = binder.accent+'28';
-  spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
-  card.appendChild(spine);
-
-  /* Cover art — clickable to open the binder */
+  /* Full-bleed cover — clickable to open the binder */
   const coverBody = buildCoverBody(binder, data);
   coverBody.style.cursor = 'pointer';
   coverBody.addEventListener('click', e => { e.stopPropagation(); window.location.href = binder.url; });
   card.appendChild(coverBody);
-
-  const footer = document.createElement('div');
-  footer.className = 'cardFooter';
-  if(!data){
-    footer.innerHTML = `<div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div>`;
-  } else {
-    footer.innerHTML = `
-      <div class="statRow">
-        <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
-        <div class="stat"><div class="val">${fmtVal(stats.value)}</div><div class="lbl">VALUE</div></div>
-      </div>
-    `;
-  }
-  card.appendChild(footer);
 
   wrap.appendChild(card);
   return { wrap, card };
