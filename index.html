@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Card Binder Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#1a1208;
+  color:#eee;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(80,50,10,0.3) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* ── Header ── */
+.hubHeader{
+  position:fixed;top:0;left:0;right:0;
+  padding:14px 20px 10px;
+  text-align:center;
+  z-index:20;
+  background:linear-gradient(to bottom,rgba(26,18,8,0.95) 70%,transparent);
+}
+.hubHeader h1{font-size:19px;color:#f0d070;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
+.hubHeader p{font-size:11px;color:#8a7050;margin-top:2px;letter-spacing:.3px;}
+
+/* ── Carousel wrap ── */
+.carouselWrap{
+  width:100%;
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:900px;
+  padding:70px 0 72px;
+}
+.carousel{
+  position:relative;
+  width:300px;
+  height:460px;
+}
+
+/* ── Binder card ── */
+.binderCard{
+  position:absolute;
+  left:0;top:0;
+  width:280px;
+  height:450px;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transition:transform .45s cubic-bezier(0.34,1.1,0.64,1), opacity .4s ease, filter .4s ease, box-shadow .4s ease;
+  transform-origin:center center;
+  backface-visibility:hidden;
+  will-change:transform,opacity;
+  user-select:none;
+}
+.binderCard.active{
+  transform:translateX(10px) rotateY(0deg) scale(1);
+  opacity:1;
+  filter:none;
+  z-index:3;
+  box-shadow:0 24px 64px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.08);
+}
+.binderCard.prev{
+  transform:translateX(-220px) rotateY(42deg) scale(0.78);
+  opacity:0.5;
+  filter:brightness(0.55);
+  z-index:2;
+  box-shadow:0 12px 32px rgba(0,0,0,0.5);
+  cursor:pointer;
+}
+.binderCard.next{
+  transform:translateX(240px) rotateY(-42deg) scale(0.78);
+  opacity:0.5;
+  filter:brightness(0.55);
+  z-index:2;
+  box-shadow:0 12px 32px rgba(0,0,0,0.5);
+  cursor:pointer;
+}
+.binderCard.hidden{
+  transform:translateX(10px) rotateY(0deg) scale(0.65);
+  opacity:0;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* Spine (top bar) */
+.cardSpine{
+  flex-shrink:0;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;
+  position:relative;
+}
+.cardSpine::after{
+  content:'';
+  position:absolute;bottom:0;left:14px;right:14px;
+  height:1px;background:rgba(255,255,255,0.09);
+}
+.spineName{font-size:17px;font-weight:800;color:#f0e0c0;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
+.spineIcon{font-size:24px;}
+
+/* Thumbnail grid */
+.thumbGrid{
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+  padding:12px;
+  background:rgba(0,0,0,0.25);
+}
+.thumb{
+  aspect-ratio:0.714;
+  border-radius:5px;
+  overflow:hidden;
+  background:#1e1508;
+  position:relative;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb.empty{
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:rgba(255,255,255,0.08);
+}
+
+/* Footer */
+.cardFooter{
+  flex-shrink:0;
+  padding:12px 18px 14px;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-top:1px solid rgba(255,255,255,0.07);
+}
+.footLeft{}
+.statRow{display:flex;gap:16px;}
+.stat .val{font-size:18px;font-weight:800;color:#f0e0c0;}
+.stat .lbl{font-size:10px;color:#8a7050;margin-top:1px;letter-spacing:.3px;}
+.lastUpd{font-size:10px;color:#5a4535;margin-top:5px;}
+.openBtn{
+  padding:9px 20px;
+  border:none;border-radius:22px;
+  font-size:13px;font-weight:700;letter-spacing:.3px;
+  cursor:pointer;color:#fff;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  transition:transform .15s,box-shadow .15s,filter .15s;
+  flex-shrink:0;
+}
+.openBtn:hover{transform:scale(1.06);filter:brightness(1.1);}
+.openBtn:active{transform:scale(0.97);}
+
+/* Not-loaded state */
+.notLoaded{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:24px;text-align:center;
+}
+.notLoaded .nlIcon{font-size:44px;opacity:.3;}
+.notLoaded p{font-size:13px;color:#7a6040;line-height:1.6;max-width:200px;}
+.notLoaded a{
+  font-size:13px;font-weight:700;text-decoration:none;
+  padding:8px 20px;border-radius:20px;border:1px solid;
+  transition:filter .15s;
+}
+.notLoaded a:hover{filter:brightness(1.2);}
+
+/* ── Nav buttons ── */
+.navBtn{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:50%;
+  font-size:22px;line-height:1;color:#f0d070;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:20;
+  transition:background .15s,transform .15s,opacity .2s;
+  user-select:none;
+}
+.navBtn:hover:not(:disabled){background:rgba(255,255,255,0.14);transform:translateY(-50%) scale(1.1);}
+.navBtn:disabled{opacity:.18;cursor:default;pointer-events:none;}
+#prevBtn{left:10px;}
+#nextBtn{right:10px;}
+
+/* ── Dots ── */
+.dots{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:9px;z-index:20;align-items:center;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  cursor:pointer;
+  transition:background .2s,transform .2s,width .2s;
+}
+.dot.active{background:#f0d070;transform:scale(1.4);}
+
+/* ── Add binder link ── */
+.addBinder{
+  position:fixed;bottom:46px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:#5a4535;
+  z-index:20;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+
+<div class="hubHeader">
+  <h1>🗂 Card Binder Hub</h1>
+  <p>Flip through your collection</p>
+</div>
+
+<button class="navBtn" id="prevBtn">‹</button>
+<button class="navBtn" id="nextBtn">›</button>
+
+<div class="carouselWrap">
+  <div class="carousel" id="carousel"></div>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<script>
+/* ── Binder registry ─────────────────────────────────────── */
+const BINDERS = [
+  {
+    key:    'melanies_binder_local_v1',
+    name:   "Melanie's Binder",
+    url:    'https://claudeaispam-maker.github.io/melanies-binder/melanies-binder.html',
+    accent: '#c0392b',
+    bg:     'linear-gradient(160deg,#2e0d0d 0%,#1a0808 100%)',
+    icon:   '🎀',
+  },
+  {
+    key:    'louis_binder_local_v1',
+    name:   "Loui's Binder",
+    url:    'https://claudeaispam-maker.github.io/louis-binder/louis-binder.html',
+    accent: '#1565c0',
+    bg:     'linear-gradient(160deg,#0a1828 0%,#06101e 100%)',
+    icon:   '🎮',
+  },
+];
+
+/* ── Helpers ─────────────────────────────────────────────── */
+function loadData(key) {
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; }
+  catch(e) { return null; }
+}
+
+function getStats(data) {
+  const cards = [];
+  let lastTs = null;
+  (data?.pages || []).forEach(page =>
+    (page || []).forEach(slot => {
+      if (!slot) return;
+      cards.push(slot);
+      if (slot.addedAt && (!lastTs || slot.addedAt > lastTs)) lastTs = slot.addedAt;
+    })
+  );
+  const images = cards.filter(c => c.image).slice(0, 6).map(c => c.image);
+  const value  = cards.reduce((s, c) => s + (Number(c.price) || 0), 0);
+  return { count: cards.length, value, images, lastTs };
+}
+
+function fmtDate(ts) {
+  if (!ts) return 'No data yet';
+  return new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function fmtValue(v) {
+  return v > 0 ? '$' + v.toFixed(2) : '—';
+}
+
+/* ── Build a binder card element ─────────────────────────── */
+function buildCard(binder, index) {
+  const data  = loadData(binder.key);
+  const stats = getStats(data);
+
+  const card = document.createElement('div');
+  card.className = 'binderCard';
+  card.style.background = binder.bg;
+  card.dataset.index = index;
+
+  /* Spine */
+  const spine = document.createElement('div');
+  spine.className = 'cardSpine';
+  spine.style.background = binder.accent + '28';
+  spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
+  card.appendChild(spine);
+
+  if (!data) {
+    /* Not-loaded state */
+    const nl = document.createElement('div');
+    nl.className = 'notLoaded';
+    nl.innerHTML = `
+      <div class="nlIcon">📂</div>
+      <p>Open this binder once on this device so the Hub can read your collection.</p>
+      <a href="${binder.url}" style="color:${binder.accent};border-color:${binder.accent}30;">Open to load →</a>
+    `;
+    card.appendChild(nl);
+
+    const footer = document.createElement('div');
+    footer.className = 'cardFooter';
+    footer.innerHTML = `<div class="footLeft"><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
+    card.appendChild(footer);
+  } else {
+    /* Thumbnail grid */
+    const grid = document.createElement('div');
+    grid.className = 'thumbGrid';
+    for (let i = 0; i < 6; i++) {
+      const cell = document.createElement('div');
+      if (stats.images[i]) {
+        cell.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = stats.images[i];
+        img.loading = 'lazy';
+        img.alt = '';
+        img.onerror = () => { cell.className = 'thumb empty'; cell.innerHTML = '?'; };
+        cell.appendChild(img);
+      } else {
+        cell.className = 'thumb empty';
+        cell.textContent = '?';
+      }
+      grid.appendChild(cell);
+    }
+    card.appendChild(grid);
+
+    /* Footer */
+    const footer = document.createElement('div');
+    footer.className = 'cardFooter';
+    footer.innerHTML = `
+      <div class="footLeft">
+        <div class="statRow">
+          <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
+          <div class="stat"><div class="val">${fmtValue(stats.value)}</div><div class="lbl">VALUE</div></div>
+        </div>
+        <div class="lastUpd">Updated ${fmtDate(stats.lastTs)}</div>
+      </div>
+      <button class="openBtn" style="background:${binder.accent};">Open →</button>
+    `;
+    footer.querySelector('.openBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = binder.url;
+    });
+    card.appendChild(footer);
+  }
+
+  /* Clicking a non-active card navigates to it */
+  card.addEventListener('click', () => {
+    const i = parseInt(card.dataset.index);
+    if (i !== current) navigateTo(i);
+  });
+
+  return card;
+}
+
+/* ── Carousel logic ──────────────────────────────────────── */
+let current = 0;
+const cards = [];
+const carousel = document.getElementById('carousel');
+const dotsEl   = document.getElementById('dots');
+
+BINDERS.forEach((binder, i) => {
+  const card = buildCard(binder, i);
+  cards.push(card);
+  carousel.appendChild(card);
+
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.addEventListener('click', () => navigateTo(i));
+  dotsEl.appendChild(dot);
+});
+
+function cardClass(cardIdx) {
+  const diff = cardIdx - current;
+  const total = cards.length;
+  if (diff === 0) return 'active';
+  if (diff === -1 || (current === 0 && cardIdx === total - 1)) return 'prev';
+  if (diff ===  1 || (current === total - 1 && cardIdx === 0)) return 'next';
+  return 'hidden';
+}
+
+function updatePositions() {
+  cards.forEach((card, i) => {
+    card.className = 'binderCard ' + cardClass(i);
+  });
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === current);
+  });
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === cards.length - 1;
+}
+
+function navigateTo(i) {
+  current = i;
+  updatePositions();
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => { if (current > 0) navigateTo(current - 1); });
+document.getElementById('nextBtn').addEventListener('click', () => { if (current < cards.length - 1) navigateTo(current + 1); });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft')  { if (current > 0)              navigateTo(current - 1); }
+  if (e.key === 'ArrowRight') { if (current < cards.length-1) navigateTo(current + 1); }
+});
+
+let touchStartX = null;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend',   e => {
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 45) {
+    if (dx < 0) { if (current < cards.length-1) navigateTo(current + 1); }
+    else        { if (current > 0)              navigateTo(current - 1); }
+  }
+  touchStartX = null;
+});
+
+updatePositions();
+</script>
+</body>
+</html>
