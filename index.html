@@ -14,95 +14,75 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
   min-height:100vh;
-  position:relative;
   overflow:hidden;
+  position:relative;
 }
 body::before{
   content:'';
   position:fixed;inset:0;
-  background:radial-gradient(ellipse at 50% 0%,rgba(80,50,10,0.3) 0%,transparent 70%);
-  pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(80,50,10,0.3) 0%,transparent 68%);
+  pointer-events:none;z-index:0;
 }
 
 /* ── Header ── */
 .hubHeader{
-  position:fixed;top:0;left:0;right:0;
-  padding:14px 20px 10px;
+  position:relative;z-index:10;
+  flex-shrink:0;
+  padding:16px 20px 10px;
   text-align:center;
-  z-index:20;
-  background:linear-gradient(to bottom,rgba(26,18,8,0.95) 70%,transparent);
-}
-.hubHeader h1{font-size:19px;color:#f0d070;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
-.hubHeader p{font-size:11px;color:#8a7050;margin-top:2px;letter-spacing:.3px;}
-
-/* ── Carousel wrap ── */
-.carouselWrap{
   width:100%;
+}
+.hubHeader h1{font-size:19px;color:#f0d070;font-weight:800;letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
+.hubHeader p{font-size:11px;color:#8a7050;margin-top:2px;letter-spacing:.2px;}
+
+/* ── Scroll track ── */
+.carouselWrap{
   flex:1;
+  width:100%;
+  overflow:hidden;
+  position:relative;z-index:1;
   display:flex;
   align-items:center;
-  justify-content:center;
-  perspective:900px;
-  padding:70px 0 72px;
 }
-.carousel{
-  position:relative;
-  width:300px;
-  height:460px;
+.carouselTrack{
+  display:flex;
+  align-items:center;
+  overflow-x:scroll;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+  gap:20px;
+  /* padding centers the first/last card with equal peek on both sides */
+  padding:16px calc(50vw - 140px - 22px);
+  width:100%;
+  height:100%;
 }
+.carouselTrack::-webkit-scrollbar{display:none}
 
 /* ── Binder card ── */
 .binderCard{
-  position:absolute;
-  left:0;top:0;
+  flex-shrink:0;
   width:280px;
-  height:450px;
-  border-radius:14px;
+  min-height:420px;
+  max-height:460px;
+  border-radius:16px;
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  transition:transform .45s cubic-bezier(0.34,1.1,0.64,1), opacity .4s ease, filter .4s ease, box-shadow .4s ease;
-  transform-origin:center center;
-  backface-visibility:hidden;
-  will-change:transform,opacity;
+  scroll-snap-align:center;
+  /* transitions handle smooth tilts during JS-driven scroll feedback */
+  will-change:transform,filter;
+  box-shadow:0 20px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(255,255,255,0.07);
+  cursor:pointer;
   user-select:none;
-}
-.binderCard.active{
-  transform:translateX(10px) rotateY(0deg) scale(1);
-  opacity:1;
-  filter:none;
-  z-index:3;
-  box-shadow:0 24px 64px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.08);
-}
-.binderCard.prev{
-  transform:translateX(-220px) rotateY(42deg) scale(0.78);
-  opacity:0.5;
-  filter:brightness(0.55);
-  z-index:2;
-  box-shadow:0 12px 32px rgba(0,0,0,0.5);
-  cursor:pointer;
-}
-.binderCard.next{
-  transform:translateX(240px) rotateY(-42deg) scale(0.78);
-  opacity:0.5;
-  filter:brightness(0.55);
-  z-index:2;
-  box-shadow:0 12px 32px rgba(0,0,0,0.5);
-  cursor:pointer;
-}
-.binderCard.hidden{
-  transform:translateX(10px) rotateY(0deg) scale(0.65);
-  opacity:0;
-  pointer-events:none;
-  z-index:1;
 }
 
 /* Spine (top bar) */
 .cardSpine{
   flex-shrink:0;
-  height:56px;
+  height:54px;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 18px;
   position:relative;
@@ -125,11 +105,10 @@ body::before{
   background:rgba(0,0,0,0.25);
 }
 .thumb{
-  aspect-ratio:0.714;
+  aspect-ratio:.714;
   border-radius:5px;
   overflow:hidden;
   background:#1e1508;
-  position:relative;
 }
 .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 .thumb.empty{
@@ -140,26 +119,24 @@ body::before{
 /* Footer */
 .cardFooter{
   flex-shrink:0;
-  padding:12px 18px 14px;
+  padding:12px 18px 16px;
   display:flex;justify-content:space-between;align-items:flex-end;
   border-top:1px solid rgba(255,255,255,0.07);
 }
-.footLeft{}
-.statRow{display:flex;gap:16px;}
 .stat .val{font-size:18px;font-weight:800;color:#f0e0c0;}
 .stat .lbl{font-size:10px;color:#8a7050;margin-top:1px;letter-spacing:.3px;}
+.statRow{display:flex;gap:16px;}
 .lastUpd{font-size:10px;color:#5a4535;margin-top:5px;}
 .openBtn{
-  padding:9px 20px;
-  border:none;border-radius:22px;
+  padding:10px 22px;
+  border:none;border-radius:24px;
   font-size:13px;font-weight:700;letter-spacing:.3px;
   cursor:pointer;color:#fff;
   box-shadow:0 4px 16px rgba(0,0,0,0.4);
-  transition:transform .15s,box-shadow .15s,filter .15s;
+  transition:transform .15s,filter .15s;
   flex-shrink:0;
 }
-.openBtn:hover{transform:scale(1.06);filter:brightness(1.1);}
-.openBtn:active{transform:scale(0.97);}
+.openBtn:active{transform:scale(0.95);}
 
 /* Not-loaded state */
 .notLoaded{
@@ -174,60 +151,49 @@ body::before{
   padding:8px 20px;border-radius:20px;border:1px solid;
   transition:filter .15s;
 }
-.notLoaded a:hover{filter:brightness(1.2);}
-
-/* ── Nav buttons ── */
-.navBtn{
-  position:fixed;top:50%;transform:translateY(-50%);
-  width:44px;height:44px;
-  background:rgba(255,255,255,0.07);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:50%;
-  font-size:22px;line-height:1;color:#f0d070;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  z-index:20;
-  transition:background .15s,transform .15s,opacity .2s;
-  user-select:none;
-}
-.navBtn:hover:not(:disabled){background:rgba(255,255,255,0.14);transform:translateY(-50%) scale(1.1);}
-.navBtn:disabled{opacity:.18;cursor:default;pointer-events:none;}
-#prevBtn{left:10px;}
-#nextBtn{right:10px;}
 
 /* ── Dots ── */
 .dots{
-  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  display:flex;gap:9px;z-index:20;align-items:center;
+  flex-shrink:0;
+  padding:14px 0 20px;
+  display:flex;gap:9px;z-index:10;
+  align-items:center;justify-content:center;
+  position:relative;
 }
 .dot{
   width:7px;height:7px;border-radius:50%;
   background:rgba(255,255,255,0.18);
   cursor:pointer;
-  transition:background .2s,transform .2s,width .2s;
+  transition:background .2s,transform .2s;
 }
 .dot.active{background:#f0d070;transform:scale(1.4);}
 
-/* ── Add binder link ── */
-.addBinder{
-  position:fixed;bottom:46px;left:50%;transform:translateX(-50%);
-  font-size:11px;color:#5a4535;
-  z-index:20;white-space:nowrap;
+/* ── Nav hint arrows (subtle, edges of screen) ── */
+.navHint{
+  position:fixed;top:50%;
+  transform:translateY(-50%);
+  width:36px;height:72px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:rgba(240,208,112,0.35);
+  z-index:20;pointer-events:none;
+  transition:opacity .3s;
 }
+#hintLeft{left:0;}
+#hintRight{right:0;}
 </style>
 </head>
 <body>
 
 <div class="hubHeader">
   <h1>🗂 Card Binder Hub</h1>
-  <p>Flip through your collection</p>
+  <p>Swipe to browse your collection</p>
 </div>
 
-<button class="navBtn" id="prevBtn">‹</button>
-<button class="navBtn" id="nextBtn">›</button>
+<div id="hintLeft"  class="navHint">‹</div>
+<div id="hintRight" class="navHint">›</div>
 
 <div class="carouselWrap">
-  <div class="carousel" id="carousel"></div>
+  <div class="carouselTrack" id="carouselTrack"></div>
 </div>
 
 <div class="dots" id="dots"></div>
@@ -254,36 +220,34 @@ const BINDERS = [
 ];
 
 /* ── Helpers ─────────────────────────────────────────────── */
-function loadData(key) {
-  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; }
-  catch(e) { return null; }
+function loadData(key){
+  try{ const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; }catch(e){ return null; }
 }
-
-function getStats(data) {
+function getStats(data){
   const cards = [];
   let lastTs = null;
-  (data?.pages || []).forEach(page =>
-    (page || []).forEach(slot => {
-      if (!slot) return;
+  (data?.pages||[]).forEach(page =>
+    (page||[]).forEach(slot => {
+      if(!slot) return;
       cards.push(slot);
-      if (slot.addedAt && (!lastTs || slot.addedAt > lastTs)) lastTs = slot.addedAt;
+      if(slot.addedAt && (!lastTs || slot.addedAt > lastTs)) lastTs = slot.addedAt;
     })
   );
-  const images = cards.filter(c => c.image).slice(0, 6).map(c => c.image);
-  const value  = cards.reduce((s, c) => s + (Number(c.price) || 0), 0);
-  return { count: cards.length, value, images, lastTs };
+  return {
+    count:   cards.length,
+    value:   cards.reduce((s,c) => s + (Number(c.price)||0), 0),
+    images:  cards.filter(c=>c.image).slice(0,6).map(c=>c.image),
+    lastTs,
+  };
 }
+function fmtDate(ts){
+  if(!ts) return 'No data yet';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtVal(v){ return v > 0 ? '$'+v.toFixed(2) : '—'; }
 
-function fmtDate(ts) {
-  if (!ts) return 'No data yet';
-  return new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-}
-function fmtValue(v) {
-  return v > 0 ? '$' + v.toFixed(2) : '—';
-}
-
-/* ── Build a binder card element ─────────────────────────── */
-function buildCard(binder, index) {
+/* ── Build a card element ────────────────────────────────── */
+function buildCard(binder, index){
   const data  = loadData(binder.key);
   const stats = getStats(data);
 
@@ -299,34 +263,31 @@ function buildCard(binder, index) {
   spine.innerHTML = `<span class="spineName">${binder.name}</span><span class="spineIcon">${binder.icon}</span>`;
   card.appendChild(spine);
 
-  if (!data) {
-    /* Not-loaded state */
+  if(!data){
     const nl = document.createElement('div');
     nl.className = 'notLoaded';
     nl.innerHTML = `
       <div class="nlIcon">📂</div>
       <p>Open this binder once on this device so the Hub can read your collection.</p>
-      <a href="${binder.url}" style="color:${binder.accent};border-color:${binder.accent}30;">Open to load →</a>
+      <a href="${binder.url}" style="color:${binder.accent};border-color:${binder.accent}44;">Open to load →</a>
     `;
     card.appendChild(nl);
-
     const footer = document.createElement('div');
     footer.className = 'cardFooter';
-    footer.innerHTML = `<div class="footLeft"><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
+    footer.innerHTML = `<div><div class="statRow"><div class="stat"><div class="val">—</div><div class="lbl">CARDS</div></div></div><div class="lastUpd">Not loaded on this device</div></div>`;
     card.appendChild(footer);
   } else {
-    /* Thumbnail grid */
     const grid = document.createElement('div');
     grid.className = 'thumbGrid';
-    for (let i = 0; i < 6; i++) {
+    for(let i=0;i<6;i++){
       const cell = document.createElement('div');
-      if (stats.images[i]) {
+      if(stats.images[i]){
         cell.className = 'thumb';
         const img = document.createElement('img');
         img.src = stats.images[i];
         img.loading = 'lazy';
         img.alt = '';
-        img.onerror = () => { cell.className = 'thumb empty'; cell.innerHTML = '?'; };
+        img.onerror = () => { cell.className='thumb empty'; cell.innerHTML='?'; };
         cell.appendChild(img);
       } else {
         cell.className = 'thumb empty';
@@ -336,98 +297,100 @@ function buildCard(binder, index) {
     }
     card.appendChild(grid);
 
-    /* Footer */
     const footer = document.createElement('div');
     footer.className = 'cardFooter';
+    const btn = document.createElement('button');
+    btn.className = 'openBtn';
+    btn.style.background = binder.accent;
+    btn.textContent = 'Open →';
+    btn.addEventListener('click', e => { e.stopPropagation(); window.location.href = binder.url; });
     footer.innerHTML = `
-      <div class="footLeft">
+      <div>
         <div class="statRow">
           <div class="stat"><div class="val">${stats.count}</div><div class="lbl">CARDS</div></div>
-          <div class="stat"><div class="val">${fmtValue(stats.value)}</div><div class="lbl">VALUE</div></div>
+          <div class="stat"><div class="val">${fmtVal(stats.value)}</div><div class="lbl">VALUE</div></div>
         </div>
         <div class="lastUpd">Updated ${fmtDate(stats.lastTs)}</div>
       </div>
-      <button class="openBtn" style="background:${binder.accent};">Open →</button>
     `;
-    footer.querySelector('.openBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.location.href = binder.url;
-    });
+    footer.appendChild(btn);
     card.appendChild(footer);
   }
-
-  /* Clicking a non-active card navigates to it */
-  card.addEventListener('click', () => {
-    const i = parseInt(card.dataset.index);
-    if (i !== current) navigateTo(i);
-  });
-
   return card;
 }
 
-/* ── Carousel logic ──────────────────────────────────────── */
-let current = 0;
-const cards = [];
-const carousel = document.getElementById('carousel');
-const dotsEl   = document.getElementById('dots');
+/* ── Init cards & dots ───────────────────────────────────── */
+const track  = document.getElementById('carouselTrack');
+const dotsEl = document.getElementById('dots');
+const cards  = [];
+let current  = 0;
 
 BINDERS.forEach((binder, i) => {
   const card = buildCard(binder, i);
   cards.push(card);
-  carousel.appendChild(card);
+  track.appendChild(card);
 
   const dot = document.createElement('div');
-  dot.className = 'dot' + (i === 0 ? ' active' : '');
-  dot.addEventListener('click', () => navigateTo(i));
+  dot.className = 'dot' + (i===0?' active':'');
+  dot.addEventListener('click', () => scrollToCard(i));
   dotsEl.appendChild(dot);
 });
 
-function cardClass(cardIdx) {
-  const diff = cardIdx - current;
-  const total = cards.length;
-  if (diff === 0) return 'active';
-  if (diff === -1 || (current === 0 && cardIdx === total - 1)) return 'prev';
-  if (diff ===  1 || (current === total - 1 && cardIdx === 0)) return 'next';
-  return 'hidden';
+/* ── Scroll to a card (smooth, iOS-native) ───────────────── */
+function scrollToCard(i){
+  cards[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
 }
 
-function updatePositions() {
+/* ── 3D tilt + dot sync on scroll ───────────────────────── */
+let rafId = null;
+function onScroll(){
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(applyTilts);
+}
+
+function applyTilts(){
+  const trackRect = track.getBoundingClientRect();
+  const center    = trackRect.left + trackRect.width / 2;
+  let   closestI  = 0;
+  let   closestD  = Infinity;
+
   cards.forEach((card, i) => {
-    card.className = 'binderCard ' + cardClass(i);
+    const r    = card.getBoundingClientRect();
+    const cCtr = r.left + r.width / 2;
+    const off  = (cCtr - center) / trackRect.width;  // -1 … +1
+
+    const angle      = off * 44;
+    const scale      = Math.max(0.80, 1 - Math.abs(off) * 0.22);
+    const brightness = Math.max(0.45, 1 - Math.abs(off) * 0.52);
+
+    card.style.transform = `perspective(900px) rotateY(${angle}deg) scale(${scale})`;
+    card.style.filter    = `brightness(${brightness})`;
+
+    const dist = Math.abs(cCtr - center);
+    if(dist < closestD){ closestD = dist; closestI = i; }
   });
-  document.querySelectorAll('.dot').forEach((d, i) => {
-    d.classList.toggle('active', i === current);
-  });
-  document.getElementById('prevBtn').disabled = current === 0;
-  document.getElementById('nextBtn').disabled = current === cards.length - 1;
-}
 
-function navigateTo(i) {
-  current = i;
-  updatePositions();
-}
-
-document.getElementById('prevBtn').addEventListener('click', () => { if (current > 0) navigateTo(current - 1); });
-document.getElementById('nextBtn').addEventListener('click', () => { if (current < cards.length - 1) navigateTo(current + 1); });
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  { if (current > 0)              navigateTo(current - 1); }
-  if (e.key === 'ArrowRight') { if (current < cards.length-1) navigateTo(current + 1); }
-});
-
-let touchStartX = null;
-document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-document.addEventListener('touchend',   e => {
-  if (touchStartX === null) return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 45) {
-    if (dx < 0) { if (current < cards.length-1) navigateTo(current + 1); }
-    else        { if (current > 0)              navigateTo(current - 1); }
+  /* update dots & hint arrows */
+  if(closestI !== current){
+    current = closestI;
+    dotsEl.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===current));
   }
-  touchStartX = null;
+  document.getElementById('hintLeft').style.opacity  = current > 0 ? '1' : '0';
+  document.getElementById('hintRight').style.opacity = current < cards.length-1 ? '1' : '0';
+}
+
+track.addEventListener('scroll', onScroll, { passive:true });
+
+/* ── Keyboard fallback ───────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowLeft'  && current>0)              scrollToCard(current-1);
+  if(e.key==='ArrowRight' && current<cards.length-1) scrollToCard(current+1);
 });
 
-updatePositions();
+/* ── Initial render ──────────────────────────────────────── */
+applyTilts();
+// After layout settle, re-run so offsetLeft values are accurate
+requestAnimationFrame(applyTilts);
 </script>
 </body>
 </html>
