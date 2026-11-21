@@ -193,6 +193,7 @@ body::before{
 const BINDERS = [
   {
     key:    'melanies_binder_local_v1',
+    snapshotUrl: 'https://claudeaispam-maker.github.io/melanies-binder/hub-snapshot.json',
     name:   "Melanie's Binder",
     url:    'https://claudeaispam-maker.github.io/melanies-binder/melanies-binder.html',
     accent: '#c0392b',
@@ -206,6 +207,7 @@ const BINDERS = [
   },
   {
     key:    'louis_binder_local_v1',
+    snapshotUrl: 'https://claudeaispam-maker.github.io/louis-binder/hub-snapshot.json',
     name:   "Loui's Binder",
     url:    'https://claudeaispam-maker.github.io/louis-binder/louis-binder.html',
     accent: '#1565c0',
@@ -220,10 +222,27 @@ const BINDERS = [
 ];
 
 /* ── Helpers ─────────────────────────────────────────────── */
-function loadData(key){
-  try{ const r=localStorage.getItem(key); return r?JSON.parse(r):null; }catch(e){ return null; }
+async function loadData(binder){
+  /* 1. Try the published snapshot (cross-device, permanent) */
+  if(binder.snapshotUrl){
+    try{
+      const r=await fetch(binder.snapshotUrl+'?t='+Date.now());
+      if(r.ok){ const j=await r.json(); if(j._snapshot) return j; }
+    }catch{}
+  }
+  /* 2. Fall back to localStorage (same device only) */
+  try{ const r=localStorage.getItem(binder.key); return r?JSON.parse(r):null; }catch{ return null; }
 }
 function getStats(data){
+  if(!data) return{count:0,value:0,lastTs:null,coverImage:null};
+  /* Snapshot format */
+  if(data._snapshot) return{
+    count: data.cardCount??0,
+    value: data.totalValue??0,
+    lastTs: data.lastUpdated??null,
+    coverImage: data.coverImage??null,
+  };
+  /* Full binder localStorage format */
   const cards=[];let lastTs=null;
   (data?.pages||[]).forEach(p=>(p||[]).forEach(s=>{
     if(!s)return;
@@ -233,8 +252,8 @@ function getStats(data){
   return{
     count:  cards.length,
     value:  cards.reduce((a,c)=>a+(Number(c.price)||0),0),
-    images: cards.filter(c=>c.image).slice(0,6).map(c=>c.image),
     lastTs,
+    coverImage: data.coverImage??null,
   };
 }
 function fmtDate(ts){
@@ -244,12 +263,12 @@ function fmtDate(ts){
 function fmtVal(v){return v>0?'$'+v.toFixed(2):'—';}
 
 /* ── Mini binder cover ───────────────────────────────────── */
-function buildCoverBody(binder, data){
+function buildCoverBody(binder, stats){
   const wrap=document.createElement('div');
   wrap.className='miniCover';
 
-  if(data && data.coverImage){
-    wrap.style.backgroundImage=`url(${data.coverImage})`;
+  if(stats && stats.coverImage){
+    wrap.style.backgroundImage=`url(${stats.coverImage})`;
     wrap.style.backgroundSize='cover';
     wrap.style.backgroundPosition='center';
   } else {
@@ -294,8 +313,7 @@ function buildCoverBody(binder, data){
 }
 
 /* ── Build card ──────────────────────────────────────────── */
-function buildCard(binder, index){
-  const data  = loadData(binder.key);
+function buildCard(binder, data, index){
   const stats = getStats(data);
 
   /* Wrapper — owns the snap point, never transformed */
@@ -309,7 +327,7 @@ function buildCard(binder, index){
   card.dataset.index = index;
 
   /* Full-bleed cover — clickable to open the binder */
-  const coverBody = buildCoverBody(binder, data);
+  const coverBody = buildCoverBody(binder, stats);
   coverBody.style.cursor = 'pointer';
   coverBody.addEventListener('click', e => { e.stopPropagation(); window.location.href = binder.url; });
   card.appendChild(coverBody);
@@ -324,17 +342,22 @@ const dotsEl = document.getElementById('dots');
 const wrappers = [], cards = [];
 let current = 0;
 
-BINDERS.forEach((binder, i) => {
-  const { wrap, card } = buildCard(binder, i);
-  wrappers.push(wrap);
-  cards.push(card);
-  track.appendChild(wrap);
+(async () => {
+  const dataResults = await Promise.all(BINDERS.map(b => loadData(b)));
+  BINDERS.forEach((binder, i) => {
+    const { wrap, card } = buildCard(binder, dataResults[i], i);
+    wrappers.push(wrap);
+    cards.push(card);
+    track.appendChild(wrap);
 
-  const dot = document.createElement('div');
-  dot.className = 'dot'+(i===0?' active':'');
-  dot.addEventListener('click', () => scrollToCard(i));
-  dotsEl.appendChild(dot);
-});
+    const dot = document.createElement('div');
+    dot.className = 'dot'+(i===0?' active':'');
+    dot.addEventListener('click', () => scrollToCard(i));
+    dotsEl.appendChild(dot);
+  });
+  applyTilts();
+  requestAnimationFrame(applyTilts);
+})();
 
 /* ── Scroll to a card ────────────────────────────────────── */
 function scrollToCard(i){
@@ -387,9 +410,7 @@ document.addEventListener('keydown', e=>{
   if(e.key==='ArrowRight' && current<cards.length-1) scrollToCard(current+1);
 });
 
-/* ── Initial render ──────────────────────────────────────── */
-applyTilts();
-requestAnimationFrame(applyTilts);
+/* applyTilts called after async init completes */
 </script>
 </body>
 </html>
